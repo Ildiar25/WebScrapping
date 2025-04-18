@@ -6,6 +6,8 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
+from .auth import authentication
+
 
 def create_app(config_type: str) -> Flask:
 
@@ -26,15 +28,15 @@ def create_app(config_type: str) -> Flask:
     # Initialize encryption data
     bcrypt.init_app(app)
 
-    # from app.auth import authentication
-    # app.register_blueprint(authentication)
+    # Register blueprint
+    app.register_blueprint(authentication)
 
     return app
 
 
 def create_login_manager() -> LoginManager:
     log_manager = LoginManager()
-    log_manager.login_view = "authentication.log_in_user"
+    log_manager.login_view = "auth.user_log_in"
     log_manager.session_protection = "strong"
     return log_manager
 
@@ -44,3 +46,5 @@ db = SQLAlchemy()
 bootstrap = Bootstrap()
 bcrypt = Bcrypt()
 login_manager = create_login_manager()
+
+from .auth import views  # Improve Circular Import... Needs to be loaded to see templates
