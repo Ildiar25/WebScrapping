@@ -47,4 +47,4 @@ bootstrap = Bootstrap()
 bcrypt = Bcrypt()
 login_manager = create_login_manager()
 
-from .auth import views  # Improve Circular Import... Needs to be loaded to see templates
+from .auth import views as views  # Improve Circular Import... Needs to be loaded to see templates
