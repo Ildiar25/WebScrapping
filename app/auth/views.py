@@ -1,7 +1,12 @@
+import requests
+from urllib.parse import urljoin
+
+from bs4 import BeautifulSoup
 from flask import flash, render_template, redirect, url_for, Response
 from flask_login import current_user, login_required, login_user, logout_user
+from lxml import etree
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, ScrapyForm
 from .models import User
 
 from . import authentication
@@ -56,6 +61,32 @@ def user_log_in() -> Response | str:
     return render_template("login.html", form=form)
 
 
+@authentication.route("/scrapy_data", methods=["GET", "POST"])
+@login_required
+def scrapy_data() -> str:
+    form = ScrapyForm()
+
+    if form.validate_on_submit():
+        new_category = form.new_category.data
+        base_url = "https://books.toscrape.com/catalogue/category/books/nothing_to_see/"
+
+        # Get BooksToScrape response with the category
+        response = requests.get(f"https://books.toscrape.com/catalogue/category/books/{new_category}/index.html")
+
+        # Get full HTML page
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # Get all URL items
+        html_tree = etree.HTML(str(soup))
+        relative_links = html_tree.xpath("//article[@class='product_pod']//h3//a/@href")
+
+        # Get URL absolutes
+        absolute_urls = [urljoin(base_url, link) for link in relative_links]
+        return render_template("scrapy_data.html", links=absolute_urls)
+
+    return render_template("scrapy_data.html", form=form)
+
+
 @authentication.route("/logout", methods=["GET"])
 @login_required
 def log_out_user() -> Response:
@@ -75,6 +106,6 @@ def homepage() -> str:
     return render_template("homepage.html")
 
 
-@authentication.errorhandler(404)
-def page_not_found() -> str:
-    return render_template("404_error.html")
+@authentication.app_errorhandler(404)
+def page_not_found(error) -> str:
+    return render_template("404_error.html", error=error)

@@ -1,11 +1,12 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, Field, PasswordField, StringField, SubmitField
+from wtforms.fields.choices import SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 from .models import User
 
 
-def email_exists(form: FlaskForm, field: Field) -> bool | None:
+def email_exists(_: FlaskForm, field: Field) -> bool | None:
     email = User.query.filter_by(user_email=field.data).first()
     if email:
         raise ValidationError("El email ya existe!")
@@ -65,4 +66,23 @@ class RegisterForm(FlaskForm):
     )
     submit = SubmitField(
         label="Registrarse"
+    )
+
+
+class ScrapyForm(FlaskForm):
+    new_category = SelectField(
+        label="Selecciona una categoría",
+        choices=[
+            ("travel_2", "Viajes"),
+            ("mystery_3", "Misterio"),
+            ("romance_8", "Romance"),
+            ("science_22", "Ciencia"),
+            ("suspense_44", "Suspense"),
+        ],
+        validators=[
+            DataRequired(),
+        ]
+    )
+    submit = SubmitField(
+        label="Buscar"
     )
