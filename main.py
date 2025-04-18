@@ -1,5 +1,4 @@
 from app import create_app, db
-from app.auth.models import User
 
 
 def main():
